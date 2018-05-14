@@ -1,7 +1,7 @@
 import pickle
 import numpy as np
 
-PREFIX = 'cifar-10-batches-py/'
+PREFIX = 'dataset/cifar-10-batches-py/'
 BATCH_TRAIN = [ PREFIX+'data_batch_'+str(x) for x in range(1,6)]
 BATCH_TEST = PREFIX+'test_batch'
 

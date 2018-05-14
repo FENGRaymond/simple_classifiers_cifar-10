@@ -74,11 +74,11 @@ class kNN_classifier(object):
 
         mat_mul = np.matmul(X, self.X_train.transpose())
 
+        X_norm = ((np.linalg.norm(X, axis = 1))**2)[np.newaxis].transpose()
+        Xtr_norm = ((np.linalg.norm(self.X_train.transpose(), axis = 0))**2)[np.newaxis]
 
-        X_norm = (np.linalg.norm(X, axis = 0))**2
-        Xtr_norm = (np.linalg.norm(self.X_train.transpose(), axis = 1))**2
-
-        dists = X_norm - 2*mat_mul
+        print(mat_mul.shape, X_norm.shape, Xtr_norm.shape)
+        dists = - 2*mat_mul + X_norm
         dists += Xtr_norm
         dists = np.sqrt(dists)
 
@@ -95,7 +95,7 @@ class kNN_classifier(object):
         :return y: a numpy array of shape (num_test, )
         """
         num_test = dists.shape[0]
-        dists_index = np.argsort(dists, axis = 1)[:, -k:]
+        dists_index = np.argsort(dists, axis = 1)[:, :k]
         dists_classes = self.Y_train[np.concatenate(dists_index)].reshape(num_test, -1)
         y, _ = stats.mode(dists_classes, axis = 1)
 
