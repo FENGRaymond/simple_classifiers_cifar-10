@@ -1,5 +1,7 @@
 import numpy as np
 from SVM.loss_function import *
+from SVM.softmax import *
+
 
 ##Superclass Linear_Classifier
 class Linear_Classifier(object):
@@ -34,19 +36,19 @@ class Linear_Classifier(object):
         num_classes = Y.max() + 1
         if self.W is None:
             ##Layzily initialize W
-            self.W = 0.001 * np.random.rand(dim, num_classes)
+            self.W = 0.0001 * np.random.rand(dim, num_classes)
 
         ##Run stochastic gradient descent to optimize W
         loss_history = []
         for it in range(num_iters):
-            random_index = np.random.choice(num_train, batch_size, replace=False)
+            random_index = np.random.choice(np.arange(num_train), batch_size, replace=False)
             X_batch = X[random_index]
             Y_batch = Y[random_index]
 
-        loss, grad = self.loss(X_batch, Y_batch, reg)
-        loss_history.append(loss)
+            loss, grad = self.loss(X_batch, Y_batch, reg)
+            loss_history.append(loss)
 
-        self.W += -learning_rate*grad
+            self.W += -learning_rate*grad
 
         if verbose and it % 100 == 0:
             print("iteration %d / %d: loss %f" % (it, num_iters, loss))
@@ -63,8 +65,7 @@ class Linear_Classifier(object):
         """
         Y_pred = np.zeros(X.shape[0])
         scores = X.dot(self.W)
-        Y_pred += np.argmax(score, axis=1)
-
+        Y_pred += np.argmax(scores, axis=1)
         return Y_pred
 
 
@@ -80,19 +81,44 @@ class Linear_Classifier(object):
                 -loss as a single float
                 -gradient with respect to self.W; an array of the same shape as W
         """
-
-        try:
-            del list
-        except:
-            pass
-
-        dW = np.zeros(self.W.shape)
-        loss = 0.0
-
-        num_classes = self.W.shape[1]
-        num_samples = X_batch.shape[0]
-
-        ##Compute loss
+        #
+        # try:
+        #     del list
+        # except:
+        #     pass
+        #
+        # dW = np.zeros(self.W.shape)
+        # loss = 0.0
+        #
+        # num_classes = self.W.shape[1]
+        # num_samples = X_batch.shape[0]
+        #
+        # ##Compute loss
+        # scores = X_batch.dot(self.W)
+        # correct_scores = scores[np.arange(num_samples), Y_batch]
+        # margin = scores - correct_scores[:, np.newaxis] + 1.0  # perform broadcasting subtraction
+        # margin[np.arange(num_samples), Y_batch] = 0  ##subtract 1 from correct class entry
+        # mask = margin > 0  ##a mask for thresholding
+        # margin_matrix = mask * margin  ##max out loss that are too small, the final loss matrix
+        # loss = np.sum(margin_matrix)
+        #
+        # ##Computer gradient
+        # new_mask = np.zeros(mask.shape)
+        # new_mask[np.arange(num_samples), Y_batch] += 1
+        #
+        # dW += (X_batch.T).dot(mask)
+        # diff_count = np.sum(mask, axis=1)  ##diff_count of shape (N,)
+        # correct_entry_weights = (X_batch * (diff_count[:, np.newaxis])).transpose()
+        # dW += correct_entry_weights.dot(new_mask)  ##add gradients to correct class entry
+        #
+        # loss /= num_samples
+        # loss += reg*np.sum(self.W*self.W)
+        #
+        # dW /= num_samples
+        # dW += 2*reg*self.W
+        #
+        # return loss, dW
+        pass
 
 
 
@@ -113,3 +139,4 @@ class Softmax(Linear_Classifier):
 
     """
     def loss(self, X_batch, Y_batch, reg):
+        return softmax_loss_vectorized(self.W, X_batch, Y_batch, reg)

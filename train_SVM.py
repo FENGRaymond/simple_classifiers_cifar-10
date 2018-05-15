@@ -5,6 +5,7 @@ from dataset.read_cifar10 import get_all_data
 from SVM.loss_function import *
 from SVM.gradient_check import *
 import time
+from SVM.Support_Vector_Machine import Linear_SVM
 
 
 ##Delete previous data if any, for safety reason.
@@ -65,10 +66,10 @@ print('dev data shape: ', X_dev.shape)
 
 ##Preprocessing: subtract mean image
 mean_image = np.mean(X_train, axis = 0)
-print(mean_image[:10])
-plt.figure(figsize=(4,4))
-plt.imshow(mean_image.reshape((32,32,3)).astype('uint8'))
-plt.show()
+# print(mean_image[:10])
+# plt.figure(figsize=(4,4))
+# plt.imshow(mean_image.reshape((32,32,3)).astype('uint8'))
+# plt.show()
 
 X_train -= mean_image
 X_val -= mean_image
@@ -106,3 +107,65 @@ toc = time.time()
 print("Vectorized loss: %e computed in %fs" % (loss_vec, toc-tic))
 
 print("difference: %f" % (loss_naive - loss_vec))
+
+# svm = Linear_SVM()
+# tic = time.time()
+# loss_hist = svm.train(X_train, Y_train, learning_rate=1e-7, reg=2.5e5,
+#                       num_iters=1500, verbose=True)
+# toc = time.time()
+# print("Training SVM took %fs" % (toc-tic))
+# plt.plot(loss_hist)
+# plt.xlabel("Iteration number")
+# plt.ylabel("Loss value")
+# plt.show()
+#
+# Y_train_pred = svm.predict(X_train)
+# print("Training accuracy : %f" % (np.mean(Y_train_pred == Y_train), ))
+# Y_val_pred = svm.predict(X_val)
+# print("Validation accuracy: %f" % (np.mean(Y_val == Y_val_pred), ))
+
+learning_rates = [1e-7, 5e-5]
+regularization_strengths = [2.5e4, 5e4]
+
+results = {}
+best_val = -1
+best_svm = None
+
+for lr in np.linspace(learning_rates[0], learning_rates[1], 10):
+    for rs in np.linspace(regularization_strengths[0], regularization_strengths[1], 10):
+        mySVM = Linear_SVM()
+        mySVM.train(X_train, Y_train, learning_rate=lr, reg=rs,
+                  num_iters=1500, verbose=True)
+        Y_train_pred = mySVM.predict(X_train)
+        Y_val_pred = mySVM.predict(X_val)
+        train_acc = np.mean(Y_train == Y_train_pred)
+        val_acc = np.mean(Y_val == Y_val_pred)
+        results[(lr, rs)] = (train_acc, val_acc)
+        if val_acc > best_val:
+            best_val = val_acc
+            best_svm = mySVM
+        del mySVM
+
+for lr, reg in sorted(results):
+    train_accuracy, val_accuracy = results[(lr, reg)]
+    print('lr %e reg %e train accuracy: %f val accuracy: %f' % (
+        lr, reg, train_accuracy, val_accuracy))
+
+print('best validation accuracy achieved during cross-validation: %f' % best_val)
+
+Y_test_pred = best_svm.predict(X_test)
+test_accuracy = np.mean(Y_test == Y_test_pred)
+print('linear SVM on raw pixels final test set accuracy: %f' % test_accuracy)
+
+w = best_svm.W[:-1, :]  # strip out the bias
+w = w.reshape(32, 32, 3, 10)
+w_min, w_max = np.min(w), np.max(w)
+classes = ['plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+for i in range(10):
+    plt.subplot(2, 5, i + 1)
+
+    # Rescale the weights to be between 0 and 255
+    wimg = 255.0 * (w[:, :, :, i].squeeze() - w_min) / (w_max - w_min)
+    plt.imshow(wimg.astype('uint8'))
+    plt.axis('off')
+    plt.title(classes[i])

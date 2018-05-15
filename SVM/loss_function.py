@@ -59,7 +59,7 @@ def svm_loss_vectorized(W, X, Y, reg):
     except:
         pass
 
-    dW = np.zeros(W.shape)
+    dW = np.zeros(W.shape, dtype=np.float64)
     loss = 0.0
 
     num_classes = W.shape[1]
@@ -79,18 +79,24 @@ def svm_loss_vectorized(W, X, Y, reg):
     new_mask = np.zeros(mask.shape)
     new_mask[np.arange(num_samples), Y] += 1
 
-    dW += (mask.transpose().dot(X)).transpose()   ##add gradient to incorrect class entry
+    dW += (X.T).dot(mask)
 
     diff_count = np.sum(mask, axis=1)             ##diff_count of shape (N,)
-    correct_entry_weights = (X*(diff_count[:,np.newaxis])).transpose()
+    correct_entry_weights = (X*(-diff_count[:,np.newaxis])).transpose()
     dW += correct_entry_weights.dot(new_mask)     ##add gradients to correct class entry
+
+    # X_mask = np.zeros(margin.shape)
+    # X_mask[margin>0] = 1
+    # incorrect_counts = np.sum(X_mask, axis=1)
+    # X_mask[np.arange(num_samples),Y] = -incorrect_counts
+    # dW = X.T.dot(X_mask)
 
 
     loss /= num_samples
-    loss += reg*np.sum(W*W)
+    loss += 0.5*reg*np.sum(W*W)
 
     dW /= num_samples
-    dW += 2*reg*W
+    dW += reg*W
 
     return loss, dW
 
