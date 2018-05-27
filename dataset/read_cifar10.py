@@ -42,18 +42,18 @@ def get_all_data():
     Xtr = np.concatenate(Xtr)
     Ytr = np.concatenate(Ytr)
     del X, Y, dict
-    print('Xtr shape: ',Xtr.shape)
-    print('Ytr shape: ',Ytr.shape)
+    ##print('Xtr shape: ',Xtr.shape)
+    ##print('Ytr shape: ',Ytr.shape)
 
     dict = unpickle(BATCH_TEST)
     X = dict[b'data']
     Y = dict[b'labels']
     X = X.reshape(10000,3,32,32).transpose(0,2,3,1).astype('float')
-    print(dict[b'batch_label'].decode('ascii'))
+    ##print(dict[b'batch_label'].decode('ascii'))
     Xte = X
     Yte = np.array(Y)
-    print('Xte:', Xte.shape, Xte.dtype)
-    print('Yte:', Yte.shape, Yte.dtype)
+    ##print('Xte:', Xte.shape, Xte.dtype)
+    ##print('Yte:', Yte.shape, Yte.dtype)
 
     return Xtr, Ytr, Xte, Yte
 

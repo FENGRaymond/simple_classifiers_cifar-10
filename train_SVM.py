@@ -108,31 +108,31 @@ print("Vectorized loss: %e computed in %fs" % (loss_vec, toc-tic))
 
 print("difference: %f" % (loss_naive - loss_vec))
 
-# svm = Linear_SVM()
-# tic = time.time()
-# loss_hist = svm.train(X_train, Y_train, learning_rate=1e-7, reg=2.5e5,
-#                       num_iters=1500, verbose=True)
-# toc = time.time()
-# print("Training SVM took %fs" % (toc-tic))
-# plt.plot(loss_hist)
-# plt.xlabel("Iteration number")
-# plt.ylabel("Loss value")
-# plt.show()
-#
-# Y_train_pred = svm.predict(X_train)
-# print("Training accuracy : %f" % (np.mean(Y_train_pred == Y_train), ))
-# Y_val_pred = svm.predict(X_val)
-# print("Validation accuracy: %f" % (np.mean(Y_val == Y_val_pred), ))
+svm = Linear_SVM()
+tic = time.time()
+loss_hist = svm.train(X_train, Y_train, learning_rate=1e-7, reg=2.5e5,
+                      num_iters=1500, verbose=True)
+toc = time.time()
+print("Training SVM took %fs" % (toc-tic))
+plt.plot(loss_hist)
+plt.xlabel("Iteration number")
+plt.ylabel("Loss value")
+plt.show()
 
-learning_rates = [1e-7, 5e-5]
+Y_train_pred = svm.predict(X_train)
+print("Training accuracy : %f" % (np.mean(Y_train_pred == Y_train), ))
+Y_val_pred = svm.predict(X_val)
+print("Validation accuracy: %f" % (np.mean(Y_val == Y_val_pred), ))
+
+learning_rates = [5e-8, 2e-7]
 regularization_strengths = [2.5e4, 5e4]
 
 results = {}
 best_val = -1
 best_svm = None
 
-for lr in np.linspace(learning_rates[0], learning_rates[1], 10):
-    for rs in np.linspace(regularization_strengths[0], regularization_strengths[1], 10):
+for lr in np.linspace(learning_rates[0], learning_rates[1], 5):
+    for rs in np.linspace(regularization_strengths[0], regularization_strengths[1], 5):
         mySVM = Linear_SVM()
         mySVM.train(X_train, Y_train, learning_rate=lr, reg=rs,
                   num_iters=1500, verbose=True)
