@@ -299,7 +299,7 @@ if __name__ == '__main__':
     print('dgamma error: ', rel_error(da_num, dgamma))
     print('dbeta error: ', rel_error(db_num, dbeta))
 
-
+##6/16/2018
 
 
 
