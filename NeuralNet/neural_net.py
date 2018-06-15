@@ -439,3 +439,5 @@ class TwoLayerNet_v2(object):
         grads['b2'] = db2
 
         return loss, grads
+
+##6/16/2018
