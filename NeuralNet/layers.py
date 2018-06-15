@@ -687,4 +687,4 @@ def softmax_loss(x, y):
 
 
 
-
+##6/16/2018
