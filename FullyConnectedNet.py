@@ -551,3 +551,5 @@ if __name__ == '__main__':
     plt.xlabel('Iteration')
     plt.ylabel('Training loss')
     plt.show()
+
+##6/16/2018
