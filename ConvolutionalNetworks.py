@@ -4,9 +4,13 @@ from NeuralNet.cnn import *
 from FullyConnectedNet import get_CIFAR10_data, rel_error
 from SVM.gradient_check import eval_numerical_gradient, eval_numerical_gradient_array
 from NeuralNet.layers import *
-from NeuralNet.fast_layers import *
+#from NeuralNet.fast_layers import *
 from solver import Solver
 from scipy.misc import imread, imresize
+from vis_utils import visualize_grid
+
+CYTHON_PASS = False
+
 
 def imshow_noax(img, normalize=True):
     if normalize:
@@ -154,3 +158,244 @@ if __name__ == '__main__':
     # print('dx error: ', rel_error(dx, dx_num))
 
     # TODO: fast layers implementation
+    ##---------------------------------failed!------------------------------------------------------------
+    # from NeuralNet.fast_layers import conv_forward_fast, conv_backward_fast
+    # from time import time
+    #
+    # np.random.seed(231)
+    # x = np.random.randn(100, 3, 31, 31)
+    # w = np.random.randn(25, 3, 3, 3)
+    # b = np.random.randn(25, )
+    # dout = np.random.randn(100, 25, 16, 16)
+    # conv_param = {'stride': 2, 'pad': 1}
+    #
+    # t0 = time()
+    # out_naive, cache_naive = conv_forward_naive(x, w, b, conv_param)
+    # t1 = time()
+    # out_fast, cache_fast = conv_forward_fast(x, w, b, conv_param)
+    # t2 = time()
+    #
+    # print('Testing conv_forward_fast:')
+    # print('Naive: %fs' % (t1 - t0))
+    # print('Fast: %fs' % (t2 - t1))
+    # print('Speedup: %fx' % ((t1 - t0) / (t2 - t1)))
+    # print('Difference: ', rel_error(out_naive, out_fast))
+    #
+    # t0 = time()
+    # dx_naive, dw_naive, db_naive = conv_backward_naive(dout, cache_naive)
+    # t1 = time()
+    # dx_fast, dw_fast, db_fast = conv_backward_fast(dout, cache_fast)
+    # t2 = time()
+    #
+    # print('\nTesting conv_backward_fast:')
+    # print('Naive: %fs' % (t1 - t0))
+    # print('Fast: %fs' % (t2 - t1))
+    # print('Speedup: %fx' % ((t1 - t0) / (t2 - t1)))
+    # print('dx difference: ', rel_error(dx_naive, dx_fast))
+    # print('dw difference: ', rel_error(dw_naive, dw_fast))
+    # print('db difference: ', rel_error(db_naive, db_fast))
+
+    ##---------------------------------gradient check: pass!--------------------------------
+    # model = ThreeLayerConvNet()
+    #
+    # N = 50
+    # X = np.random.randn(N, 3, 32, 32)
+    # y = np.random.randint(10, size=N)
+    #
+    # loss, grads = model.loss(X, y)
+    # print('Initial loss (no regularization): ', loss)
+    #
+    # model.reg = 0.5
+    # loss, grads = model.loss(X, y)
+    # print('Initial loss (with regularization): ', loss)
+    #
+    # num_inputs = 2
+    # input_dim = (3,16,16)
+    # reg = 0.0
+    # num_classes = 10
+    # np.random.seed(231)
+    # X = np.random.randn(num_inputs, *input_dim)
+    # y = np.random.randint(num_classes, size=num_inputs)
+    #
+    # model = ThreeLayerConvNet(num_filters=3, filter_size=3,
+    #                           input_dim=input_dim, hidden_dim=7,
+    #                           dtype=np.float64)
+    # loss, grads = model.loss(X, y)
+    # ##Errors should be small, but correct implementations may have
+    # ##relative errors up to the order of e-2
+    # for param_name in sorted(grads):
+    #     f = lambda _: model.loss(X, y)[0]
+    #     param_grad_num = eval_numerical_gradient(f, model.params[param_name], verbose=False, h=1e-6)
+    #     e = rel_error(param_grad_num, grads[param_name])
+    #     print('%s max relative error: %e' % (param_name, rel_error(param_grad_num, grads[param_name])))
+
+    #####################################################
+    # Initial loss (no regularization):  2.30258575404  #
+    # Initial loss (with regularization):  2.508642522  #
+    # W1 max relative error: 1.380104e-04               #
+    # W2 max relative error: 1.822723e-02               #
+    # W3 max relative error: 3.064049e-04               #
+    # b1 max relative error: 3.477652e-05               #
+    # b2 max relative error: 2.516375e-03               #
+    # b3 max relative error: 7.945660e-10               #
+    #####################################################
+
+    ##---------------------------overfit small data: failed-----------------------------------
+    # np.random.seed(231)
+    # num_train = 5000
+    # small_data = {
+    #     'X_train': data['X_train'][:num_train],
+    #     'y_train': data['Y_train'][:num_train],
+    #     'X_val': data['X_val'][:num_train],
+    #     'y_val': data['Y_val'][:num_train],
+    # }
+    #
+    # model = ThreeLayerConvNet(weight_scale=1e-2)
+    # solver = Solver(model, small_data, num_epochs=15, batch_size=50,
+    #                 update_rule='adam', optim_config={
+    #                 'learning_rate': 1e-3,
+    #                 },
+    #                 verbose=True, print_every=1)
+    # solver.train()
+    #
+    # plt.subplot(2,1,1)
+    # plt.plot(solver.loss_history, 'o')
+    # plt.xlabel('iteration')
+    # plt.ylabel('loss')
+    #
+    # plt.subplot(2,1,2)
+    # plt.plot(solver.train_acc_history, '-o')
+    # plt.plot(solver.val_acc_history, '-o')
+    # plt.legend(['train', 'val'], loc='upper left')
+    # plt.xlabel('epoch')
+    # plt.ylabel('accuracy')
+    # plt.show()
+
+
+    # model = ThreeLayerConvNet(weight_scale=0.001, hidden_dim=500, reg=0.001)
+    # solver = Solver(model, data, num_epochs=1, batch_size=50, update_rule='adam',
+    #                 optim_config={
+    #                     'learning_rate': 1e-3,
+    #                 }, verbose=True, print_every=20)
+    # solver.train()
+    #
+    # grid = visualize_grid(model.params['W1'].transpose(0,2,3,1))
+    # plt.imshow(grid.astype('uint8'))
+    # plt.axis('off')
+    # plt.gcf().set_size_inches(5, 5)
+    # plt.imshow()
+
+
+    ##-----------------------------Spatial batchnorm: pass! -----------------------------------
+    # np.random.seed(231)
+    # N, C, H, W = 2, 3, 4, 5
+    # x = 4*np.random.randn(N, C, H, W) + 10
+    #
+    # print('Before spatial batch normalization:')
+    # print('Shape: ', x.shape)
+    # print('Means: ', x.mean(axis=(0,2,3)))
+    # print('Stds: ', x.std(axis=(0,2,3)))
+    #
+    # #Means should be close to zero and stds close to one
+    # gamma, beta = np.ones(C), np.zeros(C)
+    # bn_param = {'mode': 'train'}
+    # out, _ = spatial_batchnorm_forward(x, gamma, beta, bn_param)
+    # print('After spatial batch normalization:')
+    # print('Shape: ', out.shape)
+    # print('Means: ', out.mean(axis=(0,2,3)))
+    # print('Stds: ', out.std(axis=(0,2,3)))
+    #
+    # #Means should be close to beta and stds close to gamma
+    # gamma, beta = np.asarray([3, 4, 5]), np.asarray([6, 7, 8])
+    # out, _ = spatial_batchnorm_forward(x, gamma, beta, bn_param)
+    # print('After spatial batch normalization:')
+    # print('Shape: ', out.shape)
+    # print('Means: ', out.mean(axis=(0,2,3)))
+    # print('Stds: ', out.std(axis=(0,2,3)))
+
+
+    # np.random.seed(231)
+    # N, C, H, W = 10, 4, 11, 12
+    # bn_param = {'mode': 'train'}
+    # gamma = np.ones(C)
+    # beta = np.zeros(C)
+    # for t in range(50):
+    #     x = 2.3 * np.random.randn(N, C, H, W) + 13
+    #     spatial_batchnorm_forward(x, gamma, beta, bn_param)
+    # bn_param['mode'] = 'test'
+    # x = 2.3 * np.random.randn(N, C, H, W) + 13
+    # a_norm, _ = spatial_batchnorm_forward(x, gamma, beta, bn_param)
+    #
+    # print('After spatial batch normalization(test-time):')
+    # print('means: ', a_norm.mean(axis=(0,2,3)))
+    # print('stds: ', a_norm.std(axis=(0,2,3)))
+
+
+    # np.random.seed(231)
+    # N, C, H, W = 2, 3, 4, 5
+    # x = 5 * np.random.randn(N, C, H, W) + 12
+    # gamma = np.random.randn(C)
+    # beta = np.random.randn(C)
+    # dout = np.random.randn(N, C, H, W)
+    #
+    # bn_param = {'mode': 'train'}
+    # fx = lambda x: spatial_batchnorm_forward(x, gamma, beta, bn_param)[0]
+    # fg = lambda a: spatial_batchnorm_forward(x, gamma, beta, bn_param)[0]
+    # fb = lambda b: spatial_batchnorm_forward(x, gamma, beta, bn_param)[0]
+    #
+    # dx_num = eval_numerical_gradient_array(fx, x, dout)
+    # da_num = eval_numerical_gradient_array(fg, gamma, dout)
+    # db_num = eval_numerical_gradient_array(fb, beta, dout)
+    #
+    # _, cache = spatial_batchnorm_forward(x, gamma, beta, bn_param)
+    # dx, dgamma, dbeta = spatial_batchnorm_backward(dout, cache)
+    # print('dx error: ', rel_error(dx_num, dx))
+    # print('dgamma error: ', rel_error(da_num, dgamma))
+    # print('dbeta error: ', rel_error(db_num, dbeta))
+
+    ##--------------------------------Group normalization: pass!-------------------------------
+    # np.random.seed(231)
+    #
+    # N,C,H,W = 2,6,4,5
+    # G = 2
+    # x = 4*np.random.randn(N, C, H, W) + 10
+    # x_g = x.reshape((N*G, -1))
+    # print('Before spatial group normalization')
+    # print('Shape: ', x.shape)
+    # print('Means: ',x_g.mean(axis=1))
+    # print('Stds: ', x_g.std(axis=1))
+    #
+    # gamma, beta = np.ones((1,C,1,1)), np.zeros((1,C,1,1))
+    # gn_param = {'eps': 1e-5}
+    #
+    # out, _ = spatial_groupnorm_forward(x, gamma, beta, G, gn_param)
+    # out_g = out.reshape((N*G, -1))
+    # print('After spatial group normalization')
+    # print(' Shape: ', out.shape)
+    # print(' Means: ', out_g.mean(axis=1))
+    # print(' Stds: ', out_g.std(axis=1))
+
+
+    np.random.seed(231)
+    N, C, H, W = 2, 6, 4, 5
+    G = 2
+    x = 5 * np.random.randn(N, C, H, W) + 12
+    gamma = np.random.randn(1, C, 1, 1)
+    beta = np.random.randn(1, C, 1, 1)
+    dout = np.random.randn(N, C, H, W)
+
+    gn_param = {}
+    fx = lambda x: spatial_groupnorm_forward(x, gamma, beta, G, gn_param)[0]
+    fg = lambda a: spatial_groupnorm_forward(x, gamma, beta, G, gn_param)[0]
+    fb = lambda b: spatial_groupnorm_forward(x, gamma, beta, G, gn_param)[0]
+
+    dx_num = eval_numerical_gradient_array(fx, x, dout)
+    da_num = eval_numerical_gradient_array(fg, gamma, dout)
+    db_num = eval_numerical_gradient_array(fb, beta, dout)
+
+    _, cache = spatial_groupnorm_forward(x, gamma, beta, G, gn_param)
+    dx, dgamma, dbeta = spatial_groupnorm_backward(dout, cache)
+    # You should expect errors of magnitudes between 1e-12~1e-07
+    print('dx error: ', rel_error(dx_num, dx))
+    print('dgamma error: ', rel_error(da_num, dgamma))
+    print('dbeta error: ', rel_error(db_num, dbeta))
