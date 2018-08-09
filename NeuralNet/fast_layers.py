@@ -1,6 +1,8 @@
 ##Not written by me
 
 import numpy as np
+import pyximport
+pyximport.install()
 
 try:
     from NeuralNet.im2col_cython import col2im_cython, im2col_cython
@@ -11,6 +13,7 @@ except ImportError:
     print('You may also need to restart your iPython kernel')
 
 from NeuralNet.im2col import *
+from NeuralNet.im2col_cython import *
 
 
 def conv_forward_im2col(x, w, b, conv_param):
